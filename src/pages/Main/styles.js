@@ -1,4 +1,4 @@
-import styled from 'styled-components/native';
+import styled, { css } from 'styled-components/native';
 import { RectButton } from 'react-native-gesture-handler';
 
 export const Container = styled.View`
@@ -22,6 +22,12 @@ export const Input = styled.TextInput.attrs({
   border-radius: 4px;
   padding: 0 15px;
   border: 1px solid #eee;
+
+  ${props =>
+    props.error &&
+    css`
+      border: 1px solid #ff0000;
+    `}
 `;
 
 export const SubmitButton = styled(RectButton)`

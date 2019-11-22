@@ -27,7 +27,7 @@ export default class User extends Component {
     stars: [],
     loading: false,
     loadingMore: false,
-    noMore: false,
+    moreStar: true,
     page: 1,
     refreshing: false,
   };
@@ -46,8 +46,8 @@ export default class User extends Component {
   }
 
   loadMore = () => {
-    const { noMore } = this.state;
-    if (!noMore) {
+    const { moreStar } = this.state;
+    if (moreStar) {
       const { loadingMore } = this.state;
       if (!loadingMore) {
         this.setState({ loadingMore: true });
@@ -58,12 +58,13 @@ export default class User extends Component {
     }
   };
 
-  refreshList = () => {
+  refreshList = async () => {
     const page = 1;
-    this.setState({
+    await this.setState({
       stars: [],
       page,
       refreshing: true,
+      moreStar: true,
     });
     this.loadStars(page);
   };
@@ -84,8 +85,8 @@ export default class User extends Component {
         params: { page },
       });
 
-      if (response.data.lenght < 30) {
-        this.setState({ noMore: true });
+      if (response.data.length < 30) {
+        this.setState({ moreStar: false });
       }
 
       this.setState({
@@ -108,7 +109,7 @@ export default class User extends Component {
 
   render() {
     const { navigation } = this.props;
-    const { stars, loading, refreshing, loadingMore, noMore } = this.state;
+    const { stars, loading, refreshing, loadingMore, moreStar } = this.state;
 
     const user = navigation.getParam('user');
 
@@ -126,6 +127,7 @@ export default class User extends Component {
         ) : (
           <Stars
             data={stars}
+            extraData={stars}
             onRefresh={this.refreshList} // Função dispara quando o usuário arrasta a lista pra baixo
             refreshing={refreshing} // Variável que armazena um estado true/false que representa se a lista está atualizando
             onEndReachedThreshold={0.2} // Carrega mais itens quando chegar em 20% do fim
@@ -142,7 +144,7 @@ export default class User extends Component {
             )}
           />
         )}
-        {loadingMore && !noMore && (
+        {loadingMore && moreStar && (
           <Loading>
             <ActivityIndicator color="#7159c1" size="small" />
           </Loading>

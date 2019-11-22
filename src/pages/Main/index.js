@@ -29,7 +29,8 @@ export default class Main extends Component {
   state = {
     newUser: '',
     users: [],
-    loading: 0,
+    loading: false,
+    error: false,
   };
 
   async componentDidMount() {
@@ -49,26 +50,45 @@ export default class Main extends Component {
   }
 
   handleAddUser = async () => {
-    const { users, newUser } = this.state;
+    try {
+      const { users, newUser } = this.state;
 
-    this.setState({ loading: 1 });
+      if (newUser === '') {
+        throw new Error('User em branco');
+      }
 
-    const response = await api.get(`/users/${newUser}`);
+      const exist = users.find(user => user.login === newUser);
 
-    const data = {
-      name: response.data.name,
-      login: response.data.login,
-      bio: response.data.bio,
-      avatar: response.data.avatar_url,
-    };
+      if (exist) {
+        throw new Error('User duplicado');
+      }
 
-    this.setState({
-      users: [...users, data],
-      newUser: '',
-      loading: 0,
-    });
+      this.setState({ loading: true });
 
-    Keyboard.dismiss();
+      const response = await api.get(`/users/${newUser}`);
+
+      const data = {
+        name: response.data.name,
+        login: response.data.login,
+        bio: response.data.bio,
+        avatar: response.data.avatar_url,
+      };
+
+      this.setState({
+        users: [...users, data],
+        newUser: '',
+        loading: false,
+        error: false,
+      });
+
+      Keyboard.dismiss();
+    } catch {
+      this.setState({
+        newUser: '',
+        loading: false,
+        error: true,
+      });
+    }
   };
 
   handleNavigate = user => {
@@ -78,7 +98,7 @@ export default class Main extends Component {
   };
 
   render() {
-    const { users, newUser, loading } = this.state;
+    const { users, newUser, loading, error } = this.state;
 
     return (
       <Container>
@@ -91,6 +111,7 @@ export default class Main extends Component {
             onChangeText={text => this.setState({ newUser: text })}
             returnKeyType="send"
             onSubmitEditing={this.handleAddUser}
+            error={error}
           />
           <SubmitButton loading={loading} onPress={this.handleAddUser}>
             {loading ? (
